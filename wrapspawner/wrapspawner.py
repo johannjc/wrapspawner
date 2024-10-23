@@ -27,8 +27,9 @@ import urllib.request
 from tornado import concurrent
 
 from jupyterhub.spawner import LocalProcessSpawner, Spawner
+from batchspawner.batchspawner import SlurmSpawner
 from traitlets import (
-    Instance, Type, Tuple, List, Dict, Unicode, Any
+    Instance, Type, Tuple, List, Dict, Integer, Unicode, Float, Any
 )
 from traitlets import directional_link, validate, TraitError
 
