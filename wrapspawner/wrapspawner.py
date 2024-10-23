@@ -321,6 +321,237 @@ class DockerProfilesSpawner(ProfilesSpawner):
         temp_keys[0]['first'] = self.first_template
         text = ''.join([ self.input_template.format(**tk) for tk in temp_keys ])
         return self.form_template.format(input_template=text)
+class DropDownOptionsSpawner(WrapSpawner):
+
+    """DropDownOptionsSpawner - leverages the Spawner options form feature to allow user-driven
+        configuration of Spawner classes while permitting:
+        1) configuration of Spawner classes that don't natively implement options_form
+        2) administrator control of allowed configuration changes
+        3) runtime choice of which Spawner backend to launch
+    """
+
+
+    partitions = List(
+        trait = Unicode(),
+        default_value = ['standard'],
+        minlen = 1,
+        config = True,
+        help = """List of partitions to offer for selection"""
+        )
+
+#    default_cluster_idx = Integer(0, config=True)
+    default_partition_idx=Integer(0, config=True)
+    default_days=Integer(0, config=True)
+    default_hours=Integer(8, config=True)
+    default_minutes=Integer(0, config=True)
+    default_mem=Integer(2, config=True)
+    default_cpus=Integer(1, config=True)
+
+    slurmenvironments = List(
+        trait = Unicode(),
+        default_value=['Default'],
+        minlen = 1,
+        config=True,
+        help="Label for slurm environments"
+        )
+
+    options = ""
+
+    form_template = Unicode(
+"""
+        <label for="partition">Select a partition:</label>
+        <select class="form-control" name="partition" required autofocus>
+        {partition_template}
+        </select>
+
+<table><tr><td width=160px>
+        <label for="partition">Number of CPUs:</label>
+        <input class="form-control" name="cpus" type="number" min="1" max="64" step="1" value="{default_cpus}" required>
+</td><td width=70px/><td width=120px>
+        <label for="partition">Memory (GB):</label>
+        <input class="form-control" name="memory" type="number" min="1" max="505" step="1" value="{default_mem}" required>
+</td><td width=70px/><td width=80px>
+        <label for="partition">Days:</label>
+        <input class= "form-control" name="days" type="number" min="0" max="5" step="1" value="{default_days}" required>
+</td><td width=70px/><td width=80px>
+        <label for="partition">Hours:</label>
+        <input class="form-control" name="hours" type="number" min="0" max="24" step="1" value="{default_hours}" required>
+</td><td width=70px/><td width=80px>
+        <label for="partition">Minutes:</label>
+        <input class="form-control" name="minutes" type="number" min="0" max="60" step="1" value="{default_minutes}" required>
+</td></tr></table>
+        <label for="options">Additional options:</label>
+        <input class="form-control" name="options" placeholder="--gres=gpu:1 -t 60">
+        <label for="cluster">Select Cluster:</label>
+
+
+        """,
+        config = True,
+        help = """Template to use to construct options_form text. {input_template} is replaced with
+            the result of formatting input_template against each item in the profiles list."""
+        )
+
+    first_template = Unicode('selected',
+        config=True,
+        help="Text to substitute as {first} in input_template"
+        )
+
+    partition_template = Unicode("""
+        <option value="{key}" {first}>{display}</option>""", config = True)
+
+#    cluster_template = Unicode("""
+#        <tr><td width=20px><input class="form-control" name="cluster" type="radio" value="{key}" {first}  </td><td>{display}</td></tr>
+#""", config = True)
+
+
+
+    day_template = Unicode("""
+        <option value="{key}" {first}>{display}</option>""", config = True)
+
+    hour_template = Unicode("""
+        <option value="{key}" {first}>{display}</option>""", config = True)
+
+    minute_template = Unicode("""
+        <option value="{key}" {first}>{display}</option>""", config = True)
+
+
+    input_template = Unicode("""
+        <option value="{key}" {first}>{display}</option>""",
+        config = True,
+        help = """Template to construct {input_template} in form_template. This text will be formatted
+            against each item in the profiles list, in order, using the following key names:
+            ( display, key, type ) for the first three items in the tuple, and additionally
+            first = "checked" (taken from first_template) for the first item in the list, so that
+            the first item starts selected."""
+        )
+
+    options_form = Unicode()
+
+    def _options_form_default(self):
+
+#        import json
+#        with open('/home/jcarrol1_guest/profiles.json','r') as outfile:
+#            tmp_data=json.load(outfile)
+#            for item in tmp_data:
+#                self.profiles.append((item['display'],item['key'],SlurmSpawner,item['data']))
+
+#        print(self.profiles)
+#                temp_keys.append(dict(display=item['display'],key=item['key'], 
+#        with open('data.txt', 'w') as outfile:
+#        print(json.dumps([dict(display=p[0],key=p[1],data=p[3]) for p in self.profiles ]))
+        
+
+#        temp_keys = [ dict(display=p[0], key=p[1], type=p[2], first='') for p in self.profiles ]
+#        temp_keys[0]['first'] = self.first_template
+#        text = ''.join([ self.input_template.format(**tk) for tk in temp_keys ])
+
+#        print(self.user)
+#        print(self.profiles)
+
+        temp_keys = [ dict(display=p, key=p, first='') for p in self.partitions ]
+        temp_keys[self.default_partition_idx]['first'] = self.first_template
+        ptext = ''.join([ self.partition_template.format(**tk) for tk in temp_keys ])
+
+        
+#        temp_keys = [ dict(display=p, key=p, first='') for p in self.slurmenvironments ]
+#        temp_keys[self.default_cluster_idx]['first'] = 'checked'
+#        ctext = ''.join([ self.cluster_template.format(**tk) for tk in temp_keys ])
+
+#        temp_keys= [ dict(display=x,key=x, first='') for x in self.days ]
+#        temp_keys[self.defaut_day_idx]['first'] = self.first_template
+#        dtext = ''.join([ self.day_template.format(**tk) for tk in temp_keys ])
+
+#        temp_keys= [ dict(display=x,key=x, first='') for x in self.hours ]
+#        temp_keys[self.default_hour_idx]['first'] = self.first_template
+#        htext = ''.join([ self.hour_template.format(**tk) for tk in temp_keys ])
+
+#        temp_keys= [ dict(display=x,key=x, first='') for x in self.minutes ]
+#        temp_keys[self.default_minute_idx]['first'] = self.first_template
+#        mtext = ''.join([ self.minute_template.format(**tk) for tk in temp_keys ])
+
+
+#        return self.form_template.format(input_template=text, partition_template=ptext, day_template=dtext, hour_template=htext, minute_template=mtext)
+#        return self.form_template.format(input_template=text, partition_template=ptext)
+        return self.form_template.format(partition_template=ptext, default_mem=self.default_mem, default_cpus=self.default_cpus, default_days=self.default_days, default_hours=self.default_hours, default_minutes=self.default_minutes)
+
+
+
+    def options_from_form(self, formdata):
+        # Default to first profile if somehow none is provided
+#        temp_dict=profile=formdata.get('profile', [self.profiles[0][1]])[0]       
+        return dict(partition=formdata.get('partition',[self.partitions[0][1]])[0],
+                    memory=formdata.get('memory',self.default_mem)[0],
+                    cpus=formdata.get('cpus',self.default_cpus)[0],
+                    days=formdata.get('days',self.default_days)[0],
+                    hours=formdata.get('hours',self.default_hours)[0],
+                    minutes=formdata.get('minutes',self.default_minutes)[0],
+                    options=formdata.get('options','')[0])
+
+#,                   cluster=formdata.get('cluster','')[0])
+
+    # load/get/clear : save/restore child_profile (and on load, use it to update child class/config)
+
+#    def select_profile(self, profile, partition=None, options=None):
+        # Select matching profile, or do nothing (leaving previous or default config in place)
+#        for p in self.profiles:
+#            if p[1] == profile:
+#                self.child_class = p[2]
+#                self.child_config = p[3]
+#                break
+#        if partition:
+#            print("have partition in select_profile")
+#            print(self.partitions)
+#            for p in self.partitions:
+#                if p[0] == partition:
+#                    self.child_config['req_queue'] = p[1]
+#                    print(self.child_config)
+#        if options:
+#            print("found options", options)
+#            self.child_config['req_options'] = options
+        
+
+    def construct_child(self):
+        import inspect
+        self.child_class=SlurmSpawner
+        self.child_config['req_queue']=self.user_options.get('partition',"")
+        self.child_config['req_memory']=self.user_options.get('memory',"")+"GB"
+        self.child_config['req_nprocs']=self.user_options.get('cpus',"")
+        self.child_config['req_runtime']=self.user_options.get('days',"")+"-"+self.user_options.get('hours',"")+":"+self.user_options.get('minutes',"")+":00"
+        self.child_config['req_options']=self.user_options.get('options',"")
+#        if self.user_options.get('cluster',"") in self.slurmenvironments:
+#            self.child_config['slurmenv']=self.slurmenvironments.index(self.user_options.get('cluster',""))
+#        else:
+#            self.child_config['slurmenv']=0
+
+#        self.child_profile = self.user_options.get('profile', "")
+        
+#        partition=self.user_options.get('partition', "")
+#        options=self.user_options.get('options',"")
+#        print(inspect.getmembers(self))
+
+#        print("self = ", self)
+#        print("options = ", self.user_options)
+#        print("child_profile = ", self.child_profile)
+#        print("partition = ", partition)
+#        print("options = ", options)
+#        self.select_profile(self.child_profile, partition, options)
+#        self.child_class=
+
+        super().construct_child()
+
+#    def load_child_class(self, state):        
+#        print(state)
+#        self.child_profile = state['profile']
+#        self.select_profile(self.child_profile)
+
+    def get_state(self):
+        state = super().get_state()
+#        state['profile'] = self.child_profile
+        return state
+
+    def clear_state(self):
+        super().clear_state()
+#        self.child_profile = ''
 
 
 # vim: set ai expandtab softtabstop=4:
